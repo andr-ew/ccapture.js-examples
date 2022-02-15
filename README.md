@@ -1,5 +1,5 @@
 # animate
-javacript animation capture starter kit / eduscript
+starter kit for creating rendered (non-real-time) animations in javascript (three.js / p5.js)
 
 ## TODO
 - three.js + tween.js
