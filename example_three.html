@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>three.js animation example</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #record {
+                position: fixed;
+                left: 2rem;
+                bottom: 2rem;
+            }
+        </style>
+    </head>
+    <body>
+        <button id="record" type="button" onclick="record()">record</button>
+        <!-- import ccapture.js (v1.1.0) from a CDN -->
+        <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+        <script type="module">
+            //import the three.js library (v0.137.5) & example script from a CDN
+            //
+            //  note: it seems that not all the example files can be accessed from CDNs. an alternative is to download the three.js source & include the examples folder in your project manually or use npm + browserfy/etc
+            //
+            import * as THREE from 'https://unpkg.com/three@0.137.5?module';
+            import { OrbitControls } from 'https://unpkg.com/three@0.137.5/examples/jsm/controls/OrbitControls.js?module';
+
+            let start, capturer, recording, width, height;
+
+            //some THREE.js "boilerplate"
+
+            const scene = new THREE.Scene();
+            scene.background = null;
+
+            const camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+
+            const renderer = new THREE.WebGLRenderer({
+                preserveDrawingBuffer: true,
+                alpha: true,
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            //setting the background to blue, nice for chromakeys
+            renderer.setClearColor(0x0000ff, 1);
+
+            function resize() {
+                let w, h;
+                if (recording) {
+                    w = width;
+                    h = height;
+                } else {
+                    w = window.innerWidth;
+                    h = window.innerHeight;
+                }
+
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize(w, h);
+            }
+
+            window.addEventListener('resize', resize);
+
+            const orbit = new OrbitControls(camera, renderer.domElement);
+
+            //--------------------- SET UP YOUR SCENE HERE ---------------------
+
+            const ambientLight = new THREE.AmbientLight(0x000000);
+            scene.add(ambientLight);
+            const lights = [];
+            lights[0] = new THREE.PointLight(0xffffff, 0.65, 0);
+            lights[1] = new THREE.PointLight(0xffffff, 0.65, 0);
+            lights[2] = new THREE.PointLight(0xffffff, 0.65, 0);
+            lights[0].position.set(0, 400, 0);
+            lights[1].position.set(200, 400, 400);
+            lights[2].position.set(-200, -400, -200);
+            scene.add(lights[0]);
+            scene.add(lights[1]);
+            scene.add(lights[2]);
+
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            camera.position.z = 5;
+            camera.position.y = 5;
+            camera.lookAt(0, 0, 0);
+
+            //-------------------------------------------------------------------
+
+            //animation loop duration (seconds)
+            const loopTime = 5;
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const now = (performance || Date).now();
+                if (start === undefined) start = now;
+                const elapsed = now - start;
+
+                //t = loop position in the range 0 - 1
+                const t = (elapsed % (loopTime * 1000)) / (loopTime * 1000);
+
+                //--------------------- ANIMATE YOUR SCENE HERE ---------------------
+
+                //use the value of t to drive your animation
+                //DO NOT incriment values every frame, i.e. cube.rotation.y += 0.01
+                cube.rotation.y = 2 * Math.PI * t;
+
+                //-------------------------------------------------------------------
+
+                renderer.render(scene, camera);
+                if (capturer) capturer.capture(renderer.domElement);
+            }
+            animate();
+
+            //set up ccapture.js with webm video format
+            capturer = new CCapture({
+                format: 'webm',
+                framerate: 60,
+                timeLimit: loopTime, //record exactly one loop
+                display: true,
+            });
+
+            //set video dimentions
+            width = 1920;
+            height = 1080;
+
+            //record using ccapture.js when the record button is pressed
+            window.record = function () {
+                console.log('begin recording');
+
+                start = undefined; //reset loop timing
+                recording = true;
+                resize(); //resize scene to video dimentions
+                capturer.start();
+            };
+        </script>
+    </body>
+</html>
