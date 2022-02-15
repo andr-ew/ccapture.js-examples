@@ -1,5 +1,5 @@
 # animate
-example scripts for rendered (non-real-time) animations in javascript (three.js / p5.js)
+example scripts for creating rendered (non-real-time) animations in javascript (three.js / p5.js)
 
 ## TODO
 - three.js + tween.js
