@@ -24,9 +24,8 @@
         <button id="preview" type="button" onclick="start()">preview</button>
         <!-- import ccapture.js (v1.1.0) from a CDN -->
         <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
-        <!-- import tween.js from local file -->
-        <!-- NOTE: recent tween.js is not compatible with ccapture - this is an old version taken from the ccapture.js examples, so it may not include all features. -->
-        <script src="js/tween.js"></script>
+        <!-- import tween.js (v18.6.4) from CDN -->
+        <script src="https://unpkg.com/@tweenjs/tween.js@18.6.4/dist/tween.umd.js"></script>
         <script type="module">
             //import the three.js library (v0.137.5) & example script from a CDN
             //
@@ -110,15 +109,22 @@
 
             let tween = new TWEEN.Tween(cube.rotation)
                 .to({ y: 2 * Math.PI }, duration * 1000)
-                .easing(TWEEN.Easing.Quadratic.EaseInOut);
+                .easing(TWEEN.Easing.Quadratic.InOut);
+            //.repeat(Infinity);
 
             //-------------------------------------------------------------------
 
             function animate() {
                 requestAnimationFrame(animate);
 
-                //update all tweens
-                TWEEN.update();
+                const now = (performance || Date).now();
+                if (start === undefined) {
+                    start = now;
+                }
+                const elapsed = now - start;
+
+                //update tweens based on elapsed time
+                tween.update(elapsed, false);
 
                 renderer.render(scene, camera);
                 if (capturer) capturer.capture(renderer.domElement);
@@ -144,19 +150,21 @@
                         'preview pass, must refresh page before running record'
                     );
 
-                tween.start();
+                start = undefined;
+                tween.start(0);
             };
 
             //record using ccapture.js when the record button is pressed
             window.record = function () {
                 console.log('begin recording');
 
+                //start = undefined; //reset loop timing
                 recording = true;
                 resize(); //resize scene to video dimentions
 
-                window.start();
-
                 capturer.start();
+
+                window.start();
             };
         </script>
     </body>
