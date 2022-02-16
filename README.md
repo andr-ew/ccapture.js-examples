@@ -1,7 +1,5 @@
 # animate
-example scripts for creating rendered (non-real-time) animations in javascript (three.js / p5.js)
+example scripts for rendering video animations in javascript (three.js / p5.js) using [CCapture.js](https://github.com/spite/ccapture.js)
 
 ## TODO
-- three.js + tween.js
-- three.js physics
 - p5.js
