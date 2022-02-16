@@ -5,6 +5,8 @@ click the "record" button in each script to export WebM format video right in yo
 
 the `media/` folder contains scripts for converting to mp4 & gif using [`ffmpeg`](https://ffmpeg.org/download.html) & [`gifski`](https://gif.ski/) (these are bash executables, so run `chmod +x media/*.sh` first)
 
+[source](https://github.com/andr-ew/ccapture.js-examples)
+
 ## [CCapture.js + three.js](./example_three.html)
 
 ![a three dimentional cube rotating linearly](./media/example_three.gif)
