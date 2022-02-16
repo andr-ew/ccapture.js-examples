@@ -12,16 +12,10 @@
                 left: 2rem;
                 bottom: 2rem;
             }
-            #preview {
-                position: fixed;
-                right: 2rem;
-                bottom: 2rem;
-            }
         </style>
     </head>
     <body>
         <button id="record" type="button" onclick="record()">record</button>
-        <button id="preview" type="button" onclick="start()">preview</button>
         <!-- import ccapture.js (v1.1.0) from a CDN -->
         <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
         <!-- import tween.js (v18.6.4) from CDN -->
@@ -107,10 +101,12 @@
             camera.position.y = 5;
             camera.lookAt(0, 0, 0);
 
-            let tween = new TWEEN.Tween(cube.rotation)
+            const tween = new TWEEN.Tween(cube.rotation)
                 .to({ y: 2 * Math.PI }, duration * 1000)
-                .easing(TWEEN.Easing.Quadratic.InOut);
-            //.repeat(Infinity);
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .repeat(Infinity);
+
+            const firstTween = tween; //set this to the first tween in your chain
 
             //-------------------------------------------------------------------
 
@@ -119,12 +115,13 @@
 
                 const now = (performance || Date).now();
                 if (start === undefined) {
+                    firstTween.start(0); //start the tween chain at an absolute time of 0
                     start = now;
                 }
                 const elapsed = now - start;
 
                 //update tweens based on elapsed time
-                tween.update(elapsed, false);
+                TWEEN.update(elapsed, false);
 
                 renderer.render(scene, camera);
                 if (capturer) capturer.capture(renderer.domElement);
@@ -143,28 +140,15 @@
             width = 1920;
             height = 1080;
 
-            //start the tween animation
-            window.start = function () {
-                if (!recording)
-                    console.log(
-                        'preview pass, must refresh page before running record'
-                    );
-
-                start = undefined;
-                tween.start(0);
-            };
-
             //record using ccapture.js when the record button is pressed
             window.record = function () {
                 console.log('begin recording');
 
-                //start = undefined; //reset loop timing
                 recording = true;
                 resize(); //resize scene to video dimentions
 
+                start = undefined; //reset loop timing
                 capturer.start();
-
-                window.start();
             };
         </script>
     </body>
