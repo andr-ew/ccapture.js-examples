@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>p5.js example</title>
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            #record {
+                position: fixed;
+                left: 2rem;
+                bottom: 2rem;
+            }
+        </style>
+        <button id="record" type="button" onclick="record()">record</button>
+        <!-- import ccapture.js (v1.1.0) from a CDN -->
+        <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+        <!-- import p5.js (v1.2.17) from a CDN -->
+        <script src="https://unpkg.com/p5js@1.2.17/p5.js/p5.min.js"></script>
+        <script type="text/javascript">
+            const fps = 60; //animation framerate
+            const duration = 5; //animation duration (seconds)
+
+            //set up ccapture.js with webm video format
+            capturer = new CCapture({
+                format: 'webm',
+                framerate: fps,
+                timeLimit: duration, //record exactly one loop
+                display: true,
+            });
+
+            function setup() {
+                //--------------------- SET UP YOUR SCENE HERE ---------------------
+
+                createCanvas(400, 400);
+
+                //-------------------------------------------------------------------
+
+                frameRate(fps);
+            }
+
+            let start;
+
+            function draw() {
+                const now = millis();
+                if (start === undefined) start = now;
+                const elapsed = now - start;
+
+                //t = loop position in the range 0 - 1
+                const t = (elapsed % (duration * 1000)) / (duration * 1000);
+
+                //--------------------- ANIMATE YOUR SCENE HERE ---------------------
+
+                //use the value of t to drive your animation
+                //DO NOT incriment values every frame
+                background(0, 0, 255);
+                translate(width / 2, height / 2);
+                rotate(t * 2 * PI);
+                square(-50, -50, 100);
+
+                //-------------------------------------------------------------------
+
+                //cpature current frame
+                capturer.capture(document.getElementById('defaultCanvas0'));
+            }
+
+            //record using ccapture.js when the record button is pressed
+            window.record = function () {
+                start = undefined; //reset loop timing
+                capturer.start();
+            };
+        </script>
+    </head>
+    <body>
+        <main></main>
+    </body>
+</html>
