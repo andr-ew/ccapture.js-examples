@@ -12,12 +12,21 @@
                 left: 2rem;
                 bottom: 2rem;
             }
+            #preview {
+                position: fixed;
+                right: 2rem;
+                bottom: 2rem;
+            }
         </style>
     </head>
     <body>
         <button id="record" type="button" onclick="record()">record</button>
+        <button id="preview" type="button" onclick="start()">preview</button>
         <!-- import ccapture.js (v1.1.0) from a CDN -->
         <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+        <!-- import tween.js from local file -->
+        <!-- NOTE: recent tween.js is not compatible with ccapture - this is an old version taken from the ccapture.js examples, so it may not include all features. -->
+        <script src="js/tween.js"></script>
         <script type="module">
             //import the three.js library (v0.137.5) & example script from a CDN
             //
@@ -70,6 +79,9 @@
 
             const orbit = new OrbitControls(camera, renderer.domElement);
 
+            //animation duration (seconds)
+            const duration = 3;
+
             //--------------------- SET UP YOUR SCENE HERE ---------------------
 
             const ambientLight = new THREE.AmbientLight(0x000000);
@@ -96,28 +108,17 @@
             camera.position.y = 5;
             camera.lookAt(0, 0, 0);
 
-            //-------------------------------------------------------------------
+            let tween = new TWEEN.Tween(cube.rotation)
+                .to({ y: 2 * Math.PI }, duration * 1000)
+                .easing(TWEEN.Easing.Quadratic.EaseInOut);
 
-            //animation duration (seconds)
-            const duration = 5;
+            //-------------------------------------------------------------------
 
             function animate() {
                 requestAnimationFrame(animate);
 
-                const now = (performance || Date).now();
-                if (start === undefined) start = now;
-                const elapsed = now - start;
-
-                //t = loop position in the range 0 - 1
-                const t = (elapsed % (duration * 1000)) / (duration * 1000);
-
-                //--------------------- ANIMATE YOUR SCENE HERE ---------------------
-
-                //use the value of t to drive your animation
-                //DO NOT incriment values every frame, i.e. cube.rotation.y += 0.01
-                cube.rotation.y = 2 * Math.PI * t;
-
-                //-------------------------------------------------------------------
+                //update all tweens
+                TWEEN.update();
 
                 renderer.render(scene, camera);
                 if (capturer) capturer.capture(renderer.domElement);
@@ -136,13 +137,25 @@
             width = 1920;
             height = 1080;
 
+            //start the tween animation
+            window.start = function () {
+                if (!recording)
+                    console.log(
+                        'preview pass, must refresh page before running record'
+                    );
+
+                tween.start();
+            };
+
             //record using ccapture.js when the record button is pressed
             window.record = function () {
                 console.log('begin recording');
 
-                start = undefined; //reset loop timing
                 recording = true;
                 resize(); //resize scene to video dimentions
+
+                window.start();
+
                 capturer.start();
             };
         </script>
