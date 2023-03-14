@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>three.js animation example</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #record {
+                position: fixed;
+                left: 2rem;
+                bottom: 2rem;
+            }
+        </style>
+    </head>
+    <body>
+        <button id="record" type="button" onclick="record()">record</button>
+        <!-- import ccapture.js (v1.1.0) from a CDN -->
+        <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+        <!-- import hydra-synth from a CDN -->
+        <script src="https://unpkg.com/hydra-synth"></script>
+        <script type="module">
+            const fps = 60; //animation framerate
+            const duration = Math.PI; //animation duration (seconds)
+
+            //rendered video dimentions
+            const width = 1920;
+            const height = 1080;
+
+            let w, h;
+
+            let start, capturer, recording;
+
+            //set up hydra-synth
+            let canvas = document.createElement('canvas');
+            canvas.width = window.innerWidth / 2;
+            canvas.height = window.innerHeight / 2;
+            canvas.id = 'hydra-canvas';
+            document.body.appendChild(canvas);
+
+            const hydra = new Hydra({
+                canvas: canvas,
+                detectAudio: false,
+                enableStreamCapture: false,
+                makeGlobal: false,
+                autoLoop: false,
+            });
+
+            var lastTime = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const now = (performance || Date).now();
+                if (start === undefined) start = now;
+                const elapsed = now - start;
+                const delta = now - lastTime;
+
+                //create our own time variable
+                //const time = elapsed / 1000;
+
+                {
+                    //expose some hydra globals to your sketch (you may need to add to this list if a function or var you need is not included)
+                    const {
+                        bpm,
+                        gradient,
+                        height,
+                        hush,
+                        mouse,
+                        noise,
+                        o0,
+                        o1,
+                        o2,
+                        o3,
+                        osc,
+                        prev,
+                        render,
+                        s0,
+                        s1,
+                        s2,
+                        s3,
+                        screencap,
+                        setFunction,
+                        setResolution,
+                        shape,
+                        solid,
+                        speed,
+                        src,
+                        stats,
+                        tick,
+                        time,
+                        update,
+                        voronoi,
+                        width,
+                    } = hydra.synth;
+
+                    setResolution(w, h);
+
+                    //------------------- PASE YOUR HYDRA SKETCH HERE -------------------
+
+                    solid(0, 0, 1, 1)
+                        .add(shape(4).rotate(() => time % 360))
+                        .out(o0);
+
+                    //-------------------------------------------------------------------
+                }
+
+                hydra.tick(delta);
+
+                if (capturer) capturer.capture(canvas);
+
+                lastTime = now;
+            }
+            animate();
+
+            //set up ccapture.js with webm video format
+            capturer = new CCapture({
+                format: 'webm',
+                framerate: fps,
+                timeLimit: duration, //record exactly one loop
+                display: true,
+            });
+
+            //canvas sizing
+            function resize() {
+                if (recording) {
+                    w = width;
+                    h = height;
+                } else {
+                    w = window.innerWidth;
+                    h = window.innerHeight;
+                }
+
+                console.log({ w: Math.min(w, 1280), h: Math.min(h, 720) });
+                //hydra.synth.setResolution(Math.min(w, 1280), Math.min(h, 720));
+            }
+            resize();
+
+            let resizeTimeout = -1;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(resize, 200);
+            });
+
+            //record using ccapture.js when the record button is pressed
+            window.record = function () {
+                console.log('begin recording');
+
+                start = undefined; //reset loop timing
+                recording = true;
+                resize(); //resize scene to video dimentions
+                capturer.start();
+            };
+        </script>
+    </body>
+</html>
